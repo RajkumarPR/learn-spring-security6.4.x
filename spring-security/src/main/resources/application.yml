@@ -5,6 +5,14 @@ spring:
   application:
     name: spring-security
 
+# Custom Configuration for in-memory user store
+#  security:
+#    user:
+#      name: user
+#      password: password01
+#      roles:
+#        - USER
+
 logging:
   level:
     org.springframework.security: TRACE

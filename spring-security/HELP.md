@@ -79,3 +79,101 @@ Authentication flow
              |-> preAuthenticationChecks.check(user) inside authenticate(Authentication) of AbstractUserDetailsAuthenticationProvider
 
 ```
+
+## Spring Security custom configuration
+
+The code responsible for having the default behaviour of Spring Security framework.
+```java
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnWebApplication(type = Type.SERVLET)
+class SpringBootWebSecurityConfiguration {
+
+    /**
+     * The default configuration for web security. It relies on Spring Security's
+     * content-negotiation strategy to determine what sort of authentication to use. If
+     * the user specifies their own {@link SecurityFilterChain} bean, this will back-off
+     * completely and the users should specify all the bits that they want to configure as
+     * part of the custom security configuration.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnDefaultWebSecurity
+    static class SecurityFilterChainConfiguration {
+
+        @Bean
+        @Order(SecurityProperties.BASIC_AUTH_ORDER)
+        SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+            http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+            http.formLogin(withDefaults());
+            http.httpBasic(withDefaults());
+            return http.build();
+        }
+
+    }
+
+    // ... other pieces of code 
+}
+```
+
+We can change the default behaviour of Spring Security framework by adding configuration by using
+- application.properties file.
+- Java configuration class
+
+Sample code for java based configuration class
+```java
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
+        //1. customize endpoints to be protected
+        http.authorizeHttpRequests(requests -> requests
+                .requestMatchers("/secured").authenticated()
+                .requestMatchers("/welcome", "/error").permitAll()
+        );
+
+        //2. enable form login
+        http.formLogin(Customizer.withDefaults());
+
+        //3. enable basic login
+        http.httpBasic(Customizer.withDefaults());
+
+        return http.build();
+    }
+}
+```
+#### How to disable form login authentication?
+```java
+http.formLogin(formLoginConfigurer -> formLoginConfigurer.disable());
+```
+
+#### Customize the user details instead of using the `user` and auto-generated password
+1. Using properties file
+```yaml
+# Custom Configuration for in-memory user store
+spring:
+  security:
+    user:
+      name: user
+      password: password01
+      roles:
+        - USER
+```
+
+2. Using java configuration class
+```java
+@Bean
+public UserDetailsService userDetailsService() {
+    UserDetails userDetails = User.withUsername("user")
+                .password("{noop}password01") 
+        // {noop} is used to disable password encoding and use the plaintext password
+                .roles("USER")
+                .build();
+
+    UserDetails adminDetails = User.withUsername("admin")
+                .password("{noop}password01")
+                .roles("USER", "ADMIN")
+                .build();
+
+    return new InMemoryUserDetailsManager(userDetails, adminDetails);
+}
+```

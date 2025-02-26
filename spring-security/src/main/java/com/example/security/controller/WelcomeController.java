@@ -12,4 +12,12 @@ public class WelcomeController {
     public String welcome() {
         return "Welcome to spring security 6.4.x";
     }
+    @GetMapping("/welcome")
+    public String welcome2() {
+        return "Testing welcome Unsecured endpoint";
+    }
+    @GetMapping("/secured")
+    public String secured() {
+        return "Secured with spring security 6.4.x";
+    }
 }
