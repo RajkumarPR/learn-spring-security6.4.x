@@ -1,4 +1,4 @@
-# Spring Security defaults behaviour
+# 1. Spring Security defaults behaviour
 
 When we add Spring Boot Security, in our web application by default all the REST endpoints are protected.
 ```xml
@@ -80,7 +80,7 @@ Authentication flow
 
 ```
 
-## Spring Security custom configuration
+# 2. Spring Security custom configuration
 
 The code responsible for having the default behaviour of Spring Security framework.
 ```java
@@ -175,5 +175,15 @@ public UserDetailsService userDetailsService() {
                 .build();
 
     return new InMemoryUserDetailsManager(userDetails, adminDetails);
+}
+```
+
+# 3. Spring Security using JdbcUserDetailsManager example
+Basic JBDC authentication is implemented using `JdbcUserDetailsManager`
+Create a `UserDetailsService` bean using `JdbcUserDetailsManager` passing the dataSource details.
+```java
+@Bean
+public UserDetailsService userDetailsService(DataSource dataSource) {
+    return new JdbcUserDetailsManager(dataSource);
 }
 ```
