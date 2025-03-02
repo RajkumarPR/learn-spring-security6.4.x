@@ -17,8 +17,8 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         //1. customize endpoint to be protected
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/secured").authenticated()
                 .requestMatchers("/welcome", "/register", "/error").permitAll()
+                .anyRequest().authenticated()
         );
 
         http.csrf(AbstractHttpConfigurer::disable);
