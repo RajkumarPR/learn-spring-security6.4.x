@@ -280,4 +280,48 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     }
 }
 ```
+# 6.Exception handling in Spring Security
+Spring security core exceptions such as `AuthenticationException` and `AccessDeniedException` are runtime exceptions
+These exceptions are thrown by the authentication filters behind the `DispatcherServlet` and before invoking the 
+controller methods, `@ControllerAdvice` won’t be able to catch these exceptions.
 
+Inside spring security, authentication and authorization exceptions are handled by `ExceptionTranslationFilter`
+
+```java
+               |-----------------------------|
+               | ExceptionTranslationFilter  |
+               |-----------------------------|
+                        /               \
+               401     /                 \ 403 http status codes
+      AuthenticationException     AccessDeniedException 
+                     /                      \
+                    V                        V
+          AuthenticationEntryPoint      AccessDeniedHandler
+
+
+@Configuration
+public class SecurityConfig {
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        //other code.....
+        //4. enable basic login
+        http.httpBasic(hbc -> hbc.authenticationEntryPoint(customAuthenticationEntryPoint));
+
+        //5. enable global exception handling
+        http.exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler()));
+        return http.build();
+    }
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new CustomAccessDeniedException();
+    }
+}
+
+```

@@ -26,7 +26,7 @@ public class CustomerService implements UserDetailsService {
 
         // Application logic to get user from database
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with given email: "+email));
 
         // prepare the authorities attached to the user
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(customer.getRole()));
