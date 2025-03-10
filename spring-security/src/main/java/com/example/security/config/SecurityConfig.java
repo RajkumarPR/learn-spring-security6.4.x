@@ -5,22 +5,22 @@ import com.example.security.exception.CustomAccessDeniedException;
 import com.example.security.exception.CustomAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedException customAccessDeniedException;
 
-    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
+    public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                          CustomAccessDeniedException customAccessDeniedException) {
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedException = customAccessDeniedException;
     }
 
     @Bean
@@ -55,13 +55,14 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
 
         // enable form login
-        http.formLogin(Customizer.withDefaults());
+        http.formLogin(config -> config.defaultSuccessUrl("/secured")
+                .failureUrl("/login?error"));
 
         // enable basic login
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(customAuthenticationEntryPoint));
 
         // enable global exception handling
-        http.exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler()));
+        http.exceptionHandling(ex -> ex.accessDeniedHandler(customAccessDeniedException));
         return http.build();
     }
 
@@ -70,10 +71,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories
                 .createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        return new CustomAccessDeniedException();
     }
 }

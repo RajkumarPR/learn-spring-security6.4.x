@@ -360,3 +360,31 @@ Configure session fixation strategy explicitly
 ```java
 http.sessionManagement(session -> session.sessionFixation().migrateSession());
 ```
+
+# 8. Spring Security Authentication Events
+Spring security provides the following authentication events.\
+1. AuthenticationSuccessEvent
+2. AbstractAuthenticationFailureEvent
+
+Spring security shouts out the every authentication success/failure events and those can be listened.
+```java
+// imports
+
+@Component
+public class AuthenticationEvents {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationEvents.class);
+
+    @EventListener
+    public void onSuccess(AuthenticationSuccessEvent successEvent) {
+       log.info("Authentication success for user: {}",
+                successEvent.getAuthentication().getName());
+    }
+
+    @EventListener
+    public void onFailure(AbstractAuthenticationFailureEvent failureEvent) {
+        log.error("Authentication failed for user: {} due to: {}",
+                failureEvent.getAuthentication().getName(), failureEvent.getException().getMessage());
+    }
+}
+```
