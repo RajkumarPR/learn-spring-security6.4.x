@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,25 +25,42 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        //1. customize endpoint to be protected
+        // customize endpoint to be protected
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/welcome", "/register", "/error").permitAll()
                 .requestMatchers("/secured").authenticated()
         );
-        // optionally use https/http only, by default it accepts traffic for http/https
-        //http.requiresChannel(channel -> channel.anyRequest().requiresInsecure()); // force http
-        //http.requiresChannel(channel -> channel.anyRequest().requiresSecure()); // force https
+        // configure session behavior,
+        http.sessionManagement(session -> session
+                .invalidSessionUrl("/login")
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true));
 
-        //2. disable csrf
+        // Spring security provides 3 session fixation strategy
+        // 1. changeSessionId - by default by spring security
+        // 2. newSession - creates new session without copying attributes
+        // 3. migrateSession - creates new and copy attributes from old session to new session
+        /*
+        http.sessionManagement(session -> session
+                .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId));
+        */
+
+        // optionally use https/http only, by default it accepts traffic for http/https
+        /*
+        http.requiresChannel(channel -> channel.anyRequest().requiresInsecure()); // force http
+        http.requiresChannel(channel -> channel.anyRequest().requiresSecure()); // force https
+        */
+
+        // disable csrf
         http.csrf(AbstractHttpConfigurer::disable);
 
-        //3. enable form login
+        // enable form login
         http.formLogin(Customizer.withDefaults());
 
-        //4. enable basic login
+        // enable basic login
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(customAuthenticationEntryPoint));
 
-        //5. enable global exception handling
+        // enable global exception handling
         http.exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler()));
         return http.build();
     }

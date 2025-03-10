@@ -325,3 +325,38 @@ public class SecurityConfig {
 }
 
 ```
+
+# 7. Spring Security Session Management
+
+Spring security session management provides the following features
+- Session Management: Allows us to manage user sessions and ensure 
+  that users are authenticated and authorized for the duration of their session.
+- Session Fixation Prevention: Prevents session fixation attacks by ensuring that session IDs are random and unique.
+- Session Timeout: Sets a timeout for user sessions to prevent session hijacking.
+
+how to customize the session timeout?
+```yaml
+server:
+  session:
+    timeout: 10m # session is valid for 10 minutes
+```
+#### how to redirect to login page after session timeout?
+```java
+http.sessionManagement(session -> session.invalidSessionUrl("/login"));
+// any other URL based on the requirements
+```
+#### how to control the concurrent sessions for a user?
+```java
+http.sessionManagement(session -> session.invalidSessionUrl("/login").maximumSessions(1)
+        .maxSessionsPreventsLogin(true));
+```
+#### How spring security handles session fixation attacks?
+Spring security provides 3 session fixation strategy
+1. changeSessionId - by default by spring security
+2. newSession - creates new session without copying attributes
+3. migrateSession - creates new and copy attributes from old session to new session
+
+Configure session fixation strategy explicitly
+```java
+http.sessionManagement(session -> session.sessionFixation().migrateSession());
+```
