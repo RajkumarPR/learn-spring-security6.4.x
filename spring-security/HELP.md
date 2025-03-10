@@ -358,5 +358,7 @@ Spring security provides 3 session fixation strategy
 
 Configure session fixation strategy explicitly
 ```java
-http.sessionManagement(session -> session.sessionFixation().migrateSession());
+ http.sessionManagement(session -> session.sessionFixation().changeSessionId()); // provided by spring security by default
+// http.sessionManagement(session -> session.sessionFixation().migrateSession()); OR
+// http.sessionManagement(session -> session.sessionFixation().newSession());
 ```
