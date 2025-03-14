@@ -390,4 +390,7 @@ public class AuthenticationEvents {
 ```
 
 # 9. Spring Security form login customization and handlers
-
+In spring security form login, we can customize the login page and handlers.
+there are 2 handlers
+1. AuthenticationFailureHandler
+2. AuthenticationSuccessHandler
