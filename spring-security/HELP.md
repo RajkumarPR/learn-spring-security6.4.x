@@ -394,3 +394,34 @@ In spring security form login, we can customize the login page and handlers.
 there are 2 handlers
 1. AuthenticationFailureHandler
 2. AuthenticationSuccessHandler
+
+# 10. Spring SecurityContextHolder
+SecurityContextHolder is stored in a thread local variable which contains the authentication of the currently logged-in user.
+We can change the SecurityContextHolder strategy to
+1. Mode_ThreadLocal :- default strategy
+2. Mode_InheritableThreadLocal :- User when we create another thread, Generally used in Async tasks
+3. Mode_Global :- SecurityContextHolder is shared between all threads. Used mainly in desktop apps
+```java
+|----------------------------------------------|
+|            SecurityContextHolder             |
+|     |-----------------------------------|    |
+|     |         SecurityContext           |    | 
+|     |--|--|-----------------------|--|--|    |
+|     |  |  |    Authentication     |  |  |    |
+|     |  |--|-----------|-----------|--|  |    |
+|     |  |  | Principal | authoritie|  |  |    |
+|     |  |  |       credentials     |  |  |    |
+|     |  |  |-----------------------|  |  |    |
+|     |  |-----------------------------|  |    |
+|     |-----------------------------------|    |
+|----------------------------------------------|
+
+
+// how to change the strategy
+@Bean
+public InitializingBean initializingBean() {
+    return () -> SecurityContextHolder.setStrategyName(
+            SecurityContextHolder.MODE_INHERITABLETHREADLOCAL
+        );
+}
+```
