@@ -3,6 +3,8 @@ package com.example.security.config;
 
 import com.example.security.exception.CustomAccessDeniedException;
 import com.example.security.exception.CustomAuthenticationEntryPoint;
+import com.example.security.handlers.CustomAuthenticationFailureHandler;
+import com.example.security.handlers.CustomAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,17 +19,24 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedException customAccessDeniedException;
 
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     public SecurityConfig(CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                          CustomAccessDeniedException customAccessDeniedException) {
+                          CustomAccessDeniedException customAccessDeniedException,
+                          CustomAuthenticationFailureHandler customAuthenticationFailureHandler,
+                          CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAccessDeniedException = customAccessDeniedException;
+        this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
+        this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // customize endpoint to be protected
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/welcome", "/register", "/error").permitAll()
+                .requestMatchers("/welcome", "/register", "/error","/login/**").permitAll()
                 .requestMatchers("/secured").authenticated()
         );
         // configure session behavior,
@@ -55,14 +64,29 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
 
         // enable form login
-        http.formLogin(config -> config.defaultSuccessUrl("/secured")
-                .failureUrl("/login?error"));
+        http.formLogin(config -> config
+                .defaultSuccessUrl("/secured")
+                .failureUrl("/login?error=true")
+                .successHandler(customAuthenticationSuccessHandler)
+                .failureHandler(customAuthenticationFailureHandler)
+        );
+
+        // enable custom logout
+        http.logout(logout -> logout
+                .logoutSuccessUrl("/login?logout=true")// set logout url
+                .invalidateHttpSession(true)// invalidate session
+                .deleteCookies("JSESSIONID")// delete cookie
+                .clearAuthentication(true)// clear authentication object
+                // this is clean logout operation
+        );
 
         // enable basic login
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(customAuthenticationEntryPoint));
 
         // enable global exception handling
         http.exceptionHandling(ex -> ex.accessDeniedHandler(customAccessDeniedException));
+
+        // build the httpSecurity object and return
         return http.build();
     }
 
