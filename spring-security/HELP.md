@@ -396,8 +396,8 @@ there are 2 handlers
 2. AuthenticationSuccessHandler
 
 # 10. Spring SecurityContextHolder
-SecurityContextHolder is stored in a thread local variable which contains the authentication of the currently logged-in user.
-We can change the SecurityContextHolder strategy to
+SecurityContextHolder is stored in a thread local variable which contains the authentication
+of the currently logged-in user. We can change the SecurityContextHolder strategy to
 1. Mode_ThreadLocal :- default strategy
 2. Mode_InheritableThreadLocal :- User when we create another thread, Generally used in Async tasks
 3. Mode_Global :- SecurityContextHolder is shared between all threads. Used mainly in desktop apps
@@ -424,4 +424,22 @@ public InitializingBean initializingBean() {
             SecurityContextHolder.MODE_INHERITABLETHREADLOCAL
         );
 }
+```
+# 11. Spring Security CORs
+Cross-Origin Resource Sharing (CORS) is a mechanism that allows a web application 
+to give permission to other domains to access its resources.
+CORs is not a security issue/attack but the default protection provided by the 
+browsers to stop sharing the data/communication between different domains.
+Other origin means the URL being accessed is not from the same domain by having:
+- a different scheme (http or https)
+- a different port number
+- a different domain name
+
+```java
+   |---|   brower will block due to cors   |---|
+   |   |----------------X----------------->|   |
+   |---|<---------------X------------------|---|
+   client                                  server 
+ UI app running on                      Running on 
+https://domain1.com                 https://domain2.com
 ```

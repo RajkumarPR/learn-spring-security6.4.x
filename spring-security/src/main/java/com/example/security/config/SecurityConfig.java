@@ -39,6 +39,9 @@ public class SecurityConfig {
                 .requestMatchers("/welcome", "/register", "/error","/login/**").permitAll()
                 .requestMatchers("/secured").authenticated()
         );
+        // Cross Origin Resource sharing configuration
+        http.cors(cors->cors.configurationSource(new CorsConfig()));
+
         // configure session behavior,
         http.sessionManagement(session -> session
                 .invalidSessionUrl("/login")
