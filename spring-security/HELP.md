@@ -443,3 +443,6 @@ Other origin means the URL being accessed is not from the same domain by having:
  UI app running on                      Running on 
 https://domain1.com                 https://domain2.com
 ```
+
+# 12. Spring Security CSRF
+Cross-Site Request Forgery (CSRF) is a security vulnerability that occurs when a user
