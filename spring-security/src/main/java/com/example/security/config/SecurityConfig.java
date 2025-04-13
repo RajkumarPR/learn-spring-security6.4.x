@@ -3,13 +3,14 @@ package com.example.security.config;
 
 import com.example.security.exception.CustomAccessDeniedException;
 import com.example.security.exception.CustomAuthenticationEntryPoint;
+import com.example.security.filters.AuthoritiesLoggingAfterFilter;
 import com.example.security.filters.CsrfCookiesFilter;
+import com.example.security.filters.RequestValidationBeforeFilter;
 import com.example.security.handlers.CustomAuthenticationFailureHandler;
 import com.example.security.handlers.CustomAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -80,6 +81,12 @@ public class SecurityConfig {
 
         // addFilterAfter means execute this filter after BasicAuthenticationFilter done
         http.addFilterAfter(new CsrfCookiesFilter(), BasicAuthenticationFilter.class);
+
+        // execute our custom filter before basic authentication
+        http.addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class);
+
+        // execute our custom filter after basic authentication
+        http.addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class);
 
         // when we use custom login page the spring security does not attach the JSESSIONID cookie
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));

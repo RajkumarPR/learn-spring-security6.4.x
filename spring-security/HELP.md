@@ -446,3 +446,63 @@ https://domain1.com                 https://domain2.com
 
 # 12. Spring Security CSRF
 Cross-Site Request Forgery (CSRF) is a security vulnerability that occurs when a user
+
+# 13. Spring Security Custom filters
+Spring security custom filter allow developer to customize the authentication and authorization process.
+Using spring security methods
+- addFilterBefore
+- addFilterAfter
+- addFilterAt
+- addFilter
+
+helps to customize what to do before and after the authentication and authorization process.
+
+let's take a scenario where in application we don't allow any `test` in the username, Below is the implementation of the custom filter
+```java
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+public class RequestValidationBeforeFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse res = (HttpServletResponse) response;
+        String header = req.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header != null) {
+            header = header.trim();
+            if (header.startsWith("Basic ")) {
+                byte[] base64Token = header.substring(6).getBytes(StandardCharsets.UTF_8);
+                try {
+                    byte[] decoded = Base64.getDecoder().decode(base64Token);
+                    String token = new String(decoded, StandardCharsets.UTF_8);
+                    int delim = token.indexOf(":");
+                    if (delim == -1) {
+                        throw new BadCredentialsException("Invalid basic authentication token");
+                    }
+                    String username = token.substring(0, delim);
+                    String pwd = token.substring(delim + 1);
+                    if (username.contains("test")) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        return;
+                    }
+
+                } catch (Exception ex) {
+                    throw new BadCredentialsException("Invalid basic authentication token");
+                }
+            }
+
+        }
+        chain.doFilter(request, response);
+    }
+}
+
+```
